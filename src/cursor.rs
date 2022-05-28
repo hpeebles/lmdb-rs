@@ -1,25 +1,10 @@
 use std::marker::PhantomData;
-use std::{
-    fmt,
-    mem,
-    ptr,
-    result,
-    slice,
-};
+use std::{fmt, mem, ptr, result, slice};
 
-use libc::{
-    c_uint,
-    c_void,
-    size_t,
-    EINVAL,
-};
+use libc::{c_uint, c_void, size_t, EINVAL};
 
 use database::Database;
-use error::{
-    lmdb_result,
-    Error,
-    Result,
-};
+use error::{lmdb_result, Error, Result};
 use ffi;
 use flags::WriteFlags;
 use transaction::Transaction;
@@ -420,7 +405,7 @@ impl<'txn> Iterator for IterDup<'txn> {
 
 #[cfg(test)]
 mod test {
-    use tempdir::TempDir;
+    use tempfile::Builder;
 
     use super::*;
     use environment::*;
@@ -429,7 +414,7 @@ mod test {
 
     #[test]
     fn test_get() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Environment::new().open(dir.path()).unwrap();
         let db = env.open_db(None).unwrap();
 
@@ -451,7 +436,7 @@ mod test {
 
     #[test]
     fn test_get_dup() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Environment::new().open(dir.path()).unwrap();
         let db = env.create_db(None, DatabaseFlags::DUP_SORT).unwrap();
 
@@ -486,7 +471,7 @@ mod test {
 
     #[test]
     fn test_get_dupfixed() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Environment::new().open(dir.path()).unwrap();
         let db = env.create_db(None, DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED).unwrap();
 
@@ -506,7 +491,7 @@ mod test {
 
     #[test]
     fn test_iter() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Environment::new().open(dir.path()).unwrap();
         let db = env.open_db(None).unwrap();
 
@@ -559,7 +544,7 @@ mod test {
 
     #[test]
     fn test_iter_empty_database() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Environment::new().open(dir.path()).unwrap();
         let db = env.open_db(None).unwrap();
         let txn = env.begin_ro_txn().unwrap();
@@ -572,7 +557,7 @@ mod test {
 
     #[test]
     fn test_iter_empty_dup_database() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Environment::new().open(dir.path()).unwrap();
         let db = env.create_db(None, DatabaseFlags::DUP_SORT).unwrap();
         let txn = env.begin_ro_txn().unwrap();
@@ -589,7 +574,7 @@ mod test {
 
     #[test]
     fn test_iter_dup() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Environment::new().open(dir.path()).unwrap();
         let db = env.create_db(None, DatabaseFlags::DUP_SORT).unwrap();
 
@@ -658,7 +643,7 @@ mod test {
 
     #[test]
     fn test_iter_del_get() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Environment::new().open(dir.path()).unwrap();
         let db = env.create_db(None, DatabaseFlags::DUP_SORT).unwrap();
 
@@ -696,7 +681,7 @@ mod test {
 
     #[test]
     fn test_put_del() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Environment::new().open(dir.path()).unwrap();
         let db = env.open_db(None).unwrap();
 

@@ -49,7 +49,7 @@ lmdb-rkv-sys = { path = "./lmdb-sys" }
 
 [dev-dependencies]
 rand = "0.4"
-tempdir = "0.3"
+tempfile = "3.3.0"
 
 [features]
 default = []

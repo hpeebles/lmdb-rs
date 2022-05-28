@@ -1,7 +1,4 @@
-use libc::{
-    c_uint,
-    size_t,
-};
+use libc::{c_uint, size_t};
 use std::ffi::CString;
 #[cfg(windows)]
 use std::ffi::OsStr;
@@ -9,36 +6,17 @@ use std::ffi::OsStr;
 use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
 use std::sync::Mutex;
-use std::{
-    fmt,
-    mem,
-    ptr,
-    result,
-};
+use std::{fmt, mem, ptr, result};
 
 use ffi;
 
-use byteorder::{
-    ByteOrder,
-    NativeEndian,
-};
+use byteorder::{ByteOrder, NativeEndian};
 
 use cursor::Cursor;
 use database::Database;
-use error::{
-    lmdb_result,
-    Error,
-    Result,
-};
-use flags::{
-    DatabaseFlags,
-    EnvironmentFlags,
-};
-use transaction::{
-    RoTransaction,
-    RwTransaction,
-    Transaction,
-};
+use error::{lmdb_result, Error, Result};
+use flags::{DatabaseFlags, EnvironmentFlags};
+use transaction::{RoTransaction, RwTransaction, Transaction};
 
 #[cfg(windows)]
 /// Adding a 'missing' trait from windows OsStrExt
@@ -487,11 +465,8 @@ mod test {
 
     extern crate byteorder;
 
-    use self::byteorder::{
-        ByteOrder,
-        LittleEndian,
-    };
-    use tempdir::TempDir;
+    use self::byteorder::{ByteOrder, LittleEndian};
+    use tempfile::Builder;
 
     use flags::*;
 
@@ -499,7 +474,7 @@ mod test {
 
     #[test]
     fn test_open() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
 
         // opening non-existent env with read-only should fail
         assert!(Environment::new().set_flags(EnvironmentFlags::READ_ONLY).open(dir.path()).is_err());
@@ -513,7 +488,7 @@ mod test {
 
     #[test]
     fn test_begin_txn() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
 
         {
             // writable environment
@@ -534,7 +509,7 @@ mod test {
 
     #[test]
     fn test_open_db() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Environment::new().set_max_dbs(1).open(dir.path()).unwrap();
 
         assert!(env.open_db(None).is_ok());
@@ -543,7 +518,7 @@ mod test {
 
     #[test]
     fn test_create_db() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Environment::new().set_max_dbs(11).open(dir.path()).unwrap();
         assert!(env.open_db(Some("testdb")).is_err());
         assert!(env.create_db(Some("testdb"), DatabaseFlags::empty()).is_ok());
@@ -552,7 +527,7 @@ mod test {
 
     #[test]
     fn test_close_database() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let mut env = Environment::new().set_max_dbs(10).open(dir.path()).unwrap();
 
         let db = env.create_db(Some("db"), DatabaseFlags::empty()).unwrap();
@@ -564,7 +539,7 @@ mod test {
 
     #[test]
     fn test_sync() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         {
             let env = Environment::new().open(dir.path()).unwrap();
             assert!(env.sync(true).is_ok());
@@ -577,7 +552,7 @@ mod test {
 
     #[test]
     fn test_stat() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Environment::new().open(dir.path()).unwrap();
 
         // Stats should be empty initially.
@@ -613,7 +588,7 @@ mod test {
     #[test]
     fn test_info() {
         let map_size = 1024 * 1024;
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Environment::new().set_map_size(map_size).open(dir.path()).unwrap();
 
         let info = env.info().unwrap();
@@ -627,7 +602,7 @@ mod test {
 
     #[test]
     fn test_freelist() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Environment::new().open(dir.path()).unwrap();
 
         let db = env.open_db(None).unwrap();
@@ -653,7 +628,7 @@ mod test {
 
     #[test]
     fn test_set_map_size() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Environment::new().open(dir.path()).unwrap();
 
         let mut info = env.info().unwrap();
