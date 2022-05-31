@@ -19,4 +19,4 @@ pub type mdb_filehandle_t = ::libc::c_int;
 #[allow(non_camel_case_types)]
 pub type mdb_filehandle_t = *mut ::libc::c_void;
 
-include!("bindings.rs");
+include!(concat!(env!("OUT_DIR"), "/bindings.rs"));

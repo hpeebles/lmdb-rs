@@ -9,35 +9,16 @@ extern crate libc;
 extern crate lmdb_sys as ffi;
 
 #[cfg(test)]
-extern crate tempdir;
+extern crate tempfile;
 #[macro_use]
 extern crate bitflags;
 
-pub use cursor::{
-    Cursor,
-    Iter,
-    IterDup,
-    RoCursor,
-    RwCursor,
-};
+pub use cursor::{Cursor, Iter, IterDup, RoCursor, RwCursor};
 pub use database::Database;
-pub use environment::{
-    Environment,
-    EnvironmentBuilder,
-    Info,
-    Stat,
-};
-pub use error::{
-    Error,
-    Result,
-};
+pub use environment::{Environment, EnvironmentBuilder, Info, Stat};
+pub use error::{Error, Result};
 pub use flags::*;
-pub use transaction::{
-    InactiveTransaction,
-    RoTransaction,
-    RwTransaction,
-    Transaction,
-};
+pub use transaction::{InactiveTransaction, RoTransaction, RwTransaction, Transaction};
 
 macro_rules! lmdb_try {
     ($expr:expr) => {{
@@ -70,11 +51,8 @@ mod transaction;
 #[cfg(test)]
 mod test_utils {
 
-    use byteorder::{
-        ByteOrder,
-        LittleEndian,
-    };
-    use tempdir::TempDir;
+    use byteorder::{ByteOrder, LittleEndian};
+    use tempfile::Builder;
 
     use super::*;
 
@@ -85,7 +63,7 @@ mod test_utils {
     fn issue_21_regression() {
         const HEIGHT_KEY: [u8; 1] = [0];
 
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
 
         let env = {
             let mut builder = Environment::new();

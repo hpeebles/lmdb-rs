@@ -1,7 +1,6 @@
 use bindgen::callbacks::IntKind;
 use bindgen::callbacks::ParseCallbacks;
 use std::env;
-use std::fs;
 use std::path::PathBuf;
 
 #[derive(Debug)]
@@ -39,36 +38,33 @@ impl ParseCallbacks for Callbacks {
 }
 
 pub fn generate() {
-    let mut lmdb;
-    match pkg_config::probe_library("lmdb") {
-        Ok(mut library) => {
-            lmdb = library.include_paths.pop().unwrap();
-        }
-        Err(_) => {
-            lmdb = PathBuf::from(&env::var("CARGO_MANIFEST_DIR").unwrap());
-            lmdb.push("lmdb");
-            lmdb.push("libraries");
-            lmdb.push("liblmdb");
-        }
-    }
+    let lmdb_h = match std::env::var("LMDB_H_PATH") {
+        Ok(path) => PathBuf::from(path),
+        Err(_) => match pkg_config::probe_library("lmdb") {
+            Ok(mut library) => library.include_paths.pop().unwrap(),
+            Err(_) => {
+                let lmdb = PathBuf::from(&env::var("CARGO_MANIFEST_DIR").unwrap());
+                lmdb.join("lmdb")
+                    .join("libraries")
+                    .join("liblmdb")
+                    .join("lmdb.h")
+            }
+        },
+    };
 
-    let src_bindings_path = PathBuf::from(&env::var("CARGO_MANIFEST_DIR").unwrap())
-        .join("src")
-        .join("bindings.rs");
-    let out_bindings_path =
-        PathBuf::from(env::var("OUT_DIR").unwrap()).join("lmdb-sys-bindings.rs");
+    let out_bindings_path = PathBuf::from(env::var("OUT_DIR").unwrap()).join("bindings.rs");
 
     let bindings = bindgen::Builder::default()
-        .header(lmdb.join("lmdb.h").to_string_lossy())
-        .whitelist_var("^(MDB|mdb)_.*")
-        .whitelist_type("^(MDB|mdb)_.*")
-        .whitelist_function("^(MDB|mdb)_.*")
+        .header(lmdb_h.to_string_lossy())
+        .allowlist_var("^(MDB|mdb)_.*")
+        .allowlist_type("^(MDB|mdb)_.*")
+        .allowlist_function("^(MDB|mdb)_.*")
         .size_t_is_usize(true)
         .ctypes_prefix("::libc")
-        .blacklist_item("mode_t")
-        .blacklist_item("mdb_mode_t")
-        .blacklist_item("mdb_filehandle_t")
-        .blacklist_item("^__.*")
+        .blocklist_item("mode_t")
+        .blocklist_item("mdb_mode_t")
+        .blocklist_item("mdb_filehandle_t")
+        .blocklist_item("^__.*")
         .parse_callbacks(Box::new(Callbacks {}))
         .layout_tests(false)
         .prepend_enum_name(false)
@@ -79,19 +75,4 @@ pub fn generate() {
     bindings
         .write_to_file(&out_bindings_path)
         .expect("Couldn't write bindings!");
-
-    let previous_contents = match fs::read(&src_bindings_path) {
-        Ok(s) => s,
-        Err(_) => vec![],
-    };
-
-    let new_contents = match fs::read(&out_bindings_path) {
-        Ok(s) => s,
-        Err(_) => vec![],
-    };
-
-    if previous_contents != new_contents {
-        // The bindings.rs were changed, update the original contents of src/bindings.rs
-        fs::copy(out_bindings_path, src_bindings_path).expect("Unable to write new bindings.");
-    };
 }

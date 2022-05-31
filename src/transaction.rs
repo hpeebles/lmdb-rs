@@ -1,38 +1,14 @@
-use libc::{
-    c_uint,
-    c_void,
-    size_t,
-};
+use libc::{c_uint, c_void, size_t};
 use std::marker::PhantomData;
-use std::{
-    fmt,
-    mem,
-    ptr,
-    result,
-    slice,
-};
+use std::{fmt, mem, ptr, result, slice};
 
 use ffi;
 
-use cursor::{
-    RoCursor,
-    RwCursor,
-};
+use cursor::{RoCursor, RwCursor};
 use database::Database;
-use environment::{
-    Environment,
-    Stat,
-};
-use error::{
-    lmdb_result,
-    Error,
-    Result,
-};
-use flags::{
-    DatabaseFlags,
-    EnvironmentFlags,
-    WriteFlags,
-};
+use environment::{Environment, Stat};
+use error::{lmdb_result, Error, Result};
+use flags::{DatabaseFlags, EnvironmentFlags, WriteFlags};
 
 /// An LMDB transaction.
 ///
@@ -422,16 +398,10 @@ impl<'env> Transaction for RwTransaction<'env> {
 mod test {
 
     use std::io::Write;
-    use std::sync::{
-        Arc,
-        Barrier,
-    };
-    use std::thread::{
-        self,
-        JoinHandle,
-    };
+    use std::sync::{Arc, Barrier};
+    use std::thread::{self, JoinHandle};
 
-    use tempdir::TempDir;
+    use tempfile::Builder;
 
     use super::*;
     use cursor::Cursor;
@@ -440,7 +410,7 @@ mod test {
 
     #[test]
     fn test_put_get_del() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Environment::new().open(dir.path()).unwrap();
         let db = env.open_db(None).unwrap();
 
@@ -462,7 +432,7 @@ mod test {
 
     #[test]
     fn test_put_get_del_multi() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Environment::new().open(dir.path()).unwrap();
         let db = env.create_db(None, DatabaseFlags::DUP_SORT).unwrap();
 
@@ -507,7 +477,7 @@ mod test {
 
     #[test]
     fn test_reserve() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Environment::new().open(dir.path()).unwrap();
         let db = env.open_db(None).unwrap();
 
@@ -528,7 +498,7 @@ mod test {
 
     #[test]
     fn test_inactive_txn() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Environment::new().open(dir.path()).unwrap();
         let db = env.open_db(None).unwrap();
 
@@ -546,7 +516,7 @@ mod test {
 
     #[test]
     fn test_nested_txn() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Environment::new().open(dir.path()).unwrap();
         let db = env.open_db(None).unwrap();
 
@@ -566,7 +536,7 @@ mod test {
 
     #[test]
     fn test_clear_db() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Environment::new().open(dir.path()).unwrap();
         let db = env.open_db(None).unwrap();
 
@@ -588,7 +558,7 @@ mod test {
 
     #[test]
     fn test_drop_db() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Environment::new().set_max_dbs(2).open(dir.path()).unwrap();
         let db = env.create_db(Some("test"), DatabaseFlags::empty()).unwrap();
 
@@ -610,7 +580,7 @@ mod test {
 
     #[test]
     fn test_concurrent_readers_single_writer() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env: Arc<Environment> = Arc::new(Environment::new().open(dir.path()).unwrap());
 
         let n = 10usize; // Number of concurrent readers
@@ -652,7 +622,7 @@ mod test {
 
     #[test]
     fn test_concurrent_writers() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Arc::new(Environment::new().open(dir.path()).unwrap());
 
         let n = 10usize; // Number of concurrent writers
@@ -683,7 +653,7 @@ mod test {
 
     #[test]
     fn test_stat() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Environment::new().open(dir.path()).unwrap();
         let db = env.create_db(None, DatabaseFlags::empty()).unwrap();
 
@@ -725,7 +695,7 @@ mod test {
 
     #[test]
     fn test_stat_dupsort() {
-        let dir = TempDir::new("test").unwrap();
+        let dir = Builder::new().prefix("test").tempdir().unwrap();
         let env = Environment::new().open(dir.path()).unwrap();
         let db = env.create_db(None, DatabaseFlags::DUP_SORT).unwrap();
 
